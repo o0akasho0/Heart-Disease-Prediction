@@ -309,6 +309,7 @@ if st.button("Predict"):
 
     user_df = pd.DataFrame([user])
     user_df = user_df.reindex(columns=X.columns, fill_value=0)
+    st.write(user_df)
     user_scaled = scaler.transform(user_df)
     prediction = model.predict(user_scaled)
     st.write("Prediction Value:", prediction[0])
