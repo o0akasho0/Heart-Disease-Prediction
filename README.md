@@ -1,95 +1,130 @@
-# ❤️ Heart Disease Prediction
+# ❤️ Heart Disease Prediction using Machine Learning
 
-A machine learning project that predicts the likelihood of heart disease using patient health data. The project covers full EDA, data preprocessing, model training, evaluation, and an interactive prediction feature for new patient input.
+A Streamlit web app that explores a heart disease dataset, trains three
+classification models (Logistic Regression, Decision Tree, Random Forest),
+and lets a user enter patient details to get a live prediction.
+
+---
+
+## 🚀 Live Demo
+Deployed on Streamlit Community Cloud: **https://heart-disease-prediction-akash0.streamlit.app/***
+
+---
+
+## 📂 Project Structure
+```
+├── heart_disease_fixed.py   # Main Streamlit app
+├── heart.csv                # Dataset used for training
+├── requirements.txt         # Python dependencies
+└── README.md                # This file
+```
+
+---
+
+## 🧠 What the App Does
+
+1. **Data Overview** – shows the raw dataset, shape, missing values, and duplicates.
+2. **Exploratory Data Analysis (EDA)** – visualizes target distribution, gender vs
+   disease, correlation heatmap, chest pain type vs disease, age vs max heart
+   rate, and cholesterol distribution.
+3. **Preprocessing** – one-hot encodes categorical columns (`cp`, `restecg`,
+   `slope`, `thal`) and scales numeric features with `StandardScaler`.
+4. **Model Training & Evaluation** – trains Logistic Regression, Decision
+   Tree, and Random Forest; reports Accuracy, Precision, Recall, F1,
+   Confusion Matrix, and ROC-AUC.
+5. **Model Comparison** – bar chart comparing accuracy across the 3 models.
+6. **Feature Importance** – top 10 most important features from the Random
+   Forest model.
+7. **Live Prediction** – enter patient details in the form and get an instant
+   prediction (No Disease / Disease Detected) with class probabilities.
+
+---
 
 ## 📊 Dataset
 
-The dataset used is the **Heart Disease UCI dataset** (`heart.csv`), containing patient clinical features such as age, sex, chest pain type, cholesterol, resting blood pressure, and more.
+The dataset (`heart.csv`) contains the following columns:
 
-> Note: If the dataset file is large or you'd rather not upload raw data, you can link the source here instead, e.g. [Kaggle Heart Disease Dataset](https://www.kaggle.com/datasets).
-
-## 🔍 Project Workflow
-
-1. **Data Loading & Cleaning** — loading `heart.csv`, checking nulls, removing duplicates
-2. **Exploratory Data Analysis (EDA)**
-   - Target distribution
-   - Heart disease by gender
-   - Correlation heatmap
-   - Chest pain type vs heart disease
-   - Age vs maximum heart rate
-   - Cholesterol distribution
-3. **Feature Engineering** — One-hot encoding of categorical features (`cp`, `restecg`, `slope`, `thal`)
-4. **Model Training**
-   - Logistic Regression
-   - Decision Tree Classifier
-   - Random Forest Classifier
-5. **Model Evaluation**
-   - Accuracy, Precision, Recall, F1 Score
-   - Confusion Matrix
-   - ROC-AUC Score & ROC Curve
-6. **Model Comparison** — Accuracy comparison across all three models
-7. **Feature Importance** — Identifying top health indicators (Random Forest + Logistic Regression coefficients)
-8. **Live Prediction** — Takes patient details as input and predicts heart disease risk
-
-## 🏆 Results
-
-| Model | Accuracy |
+| Column | Description |
 |---|---|
-| Logistic Regression | *fill in your value* |
-| Decision Tree | *fill in your value* |
-| Random Forest | *fill in your value* |
+| `age` | Age in years |
+| `sex` | 0 = Female, 1 = Male |
+| `cp` | Chest pain type (0–3) |
+| `trestbps` | Resting blood pressure |
+| `chol` | Serum cholesterol |
+| `fbs` | Fasting blood sugar > 120 mg/dl (0/1) |
+| `restecg` | Resting ECG results (0–2) |
+| `thalach` | Maximum heart rate achieved |
+| `exang` | Exercise induced angina (0/1) |
+| `oldpeak` | ST depression induced by exercise |
+| `slope` | Slope of the peak exercise ST segment (0–2) |
+| `ca` | Number of major vessels colored by fluoroscopy (0–4) |
+| `thal` | Thalassemia (0–3) |
+| `target` | 0 = No Disease, 1 = Disease |
 
-## 🩺 Top Health Indicators
+> **Note:** The dataset used here was curated/generated so that risk factors
+> behave in a medically intuitive direction (e.g. higher cholesterol, blood
+> pressure, and blocked vessels increase predicted risk). If you swap in a
+> different `heart.csv` with the same column names, the app will retrain
+> automatically — no code changes needed.
 
-1. Chest Pain Type (`cp`)
-2. Maximum Heart Rate (`thalach`)
-3. ST Depression (`oldpeak`)
-4. Number of Major Vessels (`ca`)
-5. Thalassemia (`thal`)
+---
 
 ## 🛠️ Tech Stack
+- **Python**
+- **Streamlit** – web app framework
+- **pandas / numpy** – data handling
+- **matplotlib / seaborn** – visualizations
+- **scikit-learn** – ML models (Logistic Regression, Decision Tree, Random Forest)
 
-- Python
-- Pandas, NumPy
-- Matplotlib, Seaborn
-- Scikit-learn
+---
 
-## ▶️ How to Run
+## 💻 Run Locally
 
 ```bash
-# Clone the repository
-git clone https://github.com/o0akasho0/heart-disease-prediction.git
-cd heart-disease-prediction
+# 1. Clone the repo
+git clone <your-repo-url>
+cd <your-repo-folder>
 
-# Install dependencies
+# 2. Install dependencies
 pip install -r requirements.txt
 
-# Run the script
-python heart_disease_prediction.py
+# 3. Run the app
+streamlit run heart_disease_fixed.py
 ```
 
-## 📁 Project Structure
+The app will open at `http://localhost:8501`.
 
-```
-heart-disease-prediction/
-│
-├── heart.csv                     # Dataset
-├── heart_disease_prediction.py   # Main script
-├── requirements.txt               # Dependencies
-└── README.md                      # Project documentation
-```
+---
 
-## 📌 Future Improvements
+## ☁️ Deployment (Streamlit Community Cloud)
 
-- Deploy as a web app using Streamlit or Flask
-- Hyperparameter tuning for better accuracy
-- Add cross-validation
-- Try additional models (XGBoost, SVM)
+1. Push this project (including `heart.csv` and `requirements.txt`) to a
+   GitHub repository.
+2. Go to [share.streamlit.io](https://share.streamlit.io).
+3. Click **New app** → select your repo, branch, and set the main file
+   path to `heart_disease_fixed.py`.
+4. Click **Deploy** — the app will be live in a couple of minutes.
 
-## 🤝 Contributing
+---
 
-Feel free to fork this repo and submit pull requests for improvements.
+## 🔮 Example Predictions
 
-## 📄 License
+**Likely "No Heart Disease":**
+Age 25, Female, CP 0, BP 110, Chol 150, FBS 0, RestECG 0, Max HR 190,
+Exang 0, Oldpeak 0.0, Slope 0, Vessels 0, Thal 1
 
-This project is open source and available under the MIT License.
+**Likely "Heart Disease Detected":**
+Age 65, Male, CP 3, BP 180, Chol 350, FBS 1, RestECG 2, Max HR 95,
+Exang 1, Oldpeak 4.5, Slope 2, Vessels 4, Thal 3
+
+---
+
+## ⚠️ Disclaimer
+This project is for **educational purposes only** and is **not** a
+substitute for professional medical diagnosis.
+
+---
+
+## 👤 Author
+Akash kumar Gupta
+
