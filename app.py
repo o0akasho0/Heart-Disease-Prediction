@@ -83,6 +83,7 @@ st.dataframe(df.head())
 # Features and Target
 X = df.drop("target", axis=1)
 y = df["target"]
+st.write(X.columns.tolist())
 
 # Train Test Split
 X_train, X_test, y_train, y_test = train_test_split(
@@ -172,11 +173,8 @@ rf_model = RandomForestClassifier(
 )
 
 rf_model.fit(X_train, y_train)
-
-rf_pred = rf_model.predict(X_test)
-
+rf_pred = rf_model.predict(X_test
 rf_accuracy = accuracy_score(y_test, rf_pred)
-
 st.write("Random Forest Accuracy :", rf_accuracy)
 
 
