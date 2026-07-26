@@ -239,9 +239,7 @@ st.pyplot(fig)
 
 # Prediction Section
 st.header("Heart Disease Prediction")
-
-age = st.number_input("Age", 1, 100, 30)
-
+age = st.number_input("Age", 1, 100, 30
 sex = st.selectbox(
     "Sex",
     [0,1],
@@ -315,6 +313,8 @@ if st.button("Predict"):
     user_df = user_df.reindex(columns=X.columns, fill_value=0)
     user_scaled = scaler.transform(user_df)
     prediction = model.predict(user_scaled)
+    st.write("Prediction Value:", prediction[0])
+    st.write("Prediction Probability:", model.predict_proba(user_scaled))
     if prediction[0] == 1:
         st.error("Heart Disease Detected")
     else:
