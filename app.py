@@ -173,7 +173,7 @@ rf_model = RandomForestClassifier(
 )
 
 rf_model.fit(X_train, y_train)
-rf_pred = rf_model.predict(X_test
+rf_pred = rf_model.predict(X_test)
 rf_accuracy = accuracy_score(y_test, rf_pred)
 st.write("Random Forest Accuracy :", rf_accuracy)
 
