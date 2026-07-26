@@ -239,7 +239,7 @@ st.pyplot(fig)
 
 # Prediction Section
 st.header("Heart Disease Prediction")
-age = st.number_input("Age", 1, 100, 30
+age = st.number_input("Age", 1, 100, 30)
 sex = st.selectbox(
     "Sex",
     [0,1],
