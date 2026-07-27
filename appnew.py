@@ -32,18 +32,14 @@ st.write("Logistic Regression | Decision Tree | Random Forest")
 CAT_COLS = ["cp", "restecg", "slope", "thal"]
 
 
-# ---------------------------------------------------------------
+
 # STEP 1: LOAD
-# ---------------------------------------------------------------
 @st.cache_data
 def load_data():
     raw_df = pd.read_csv("heart.csv")
     return raw_df
 
-
-# ---------------------------------------------------------------
 # STEP 2: CLEANING (separated out, so it runs BEFORE EDA)
-# ---------------------------------------------------------------
 @st.cache_data
 def clean_data(raw_df: pd.DataFrame):
     df = raw_df.drop_duplicates().copy()
