@@ -16,7 +16,8 @@ from sklearn.metrics import (
     f1_score,
     confusion_matrix,
     roc_auc_score,
-    roc_curve
+    roc_curve,
+    classification_report
 )
 
 st.set_page_config(
@@ -31,17 +32,18 @@ st.write("Logistic Regression | Decision Tree | Random Forest")
 CAT_COLS = ["cp", "restecg", "slope", "thal"]
 
 
-
-# LOAD
+# ---------------------------------------------------------------
+# STEP 1: LOAD
+# ---------------------------------------------------------------
 @st.cache_data
 def load_data():
     raw_df = pd.read_csv("heart.csv")
     return raw_df
 
 
-
-#CLEANING (separated out, so it runs BEFORE EDA)
-
+# ---------------------------------------------------------------
+# STEP 2: CLEANING (separated out, so it runs BEFORE EDA)
+# ---------------------------------------------------------------
 @st.cache_data
 def clean_data(raw_df: pd.DataFrame):
     df = raw_df.drop_duplicates().copy()
@@ -50,7 +52,11 @@ def clean_data(raw_df: pd.DataFrame):
     return df
 
 
+# ---------------------------------------------------------------
 # STEP 4-7: FEATURE ENGINEERING -> SPLIT -> SCALING -> TRAIN
+# (kept as one cached function for efficiency, but it is only
+#  CALLED after the EDA section runs in the script below)
+# ---------------------------------------------------------------
 @st.cache_resource
 def prepare_and_train(df: pd.DataFrame):
     # Feature Engineering (One-Hot Encoding)
@@ -73,11 +79,12 @@ def prepare_and_train(df: pd.DataFrame):
     log_model = LogisticRegression(max_iter=1000)
     log_model.fit(X_train_scaled, y_train)
 
+    # Tree-based models don't need scaling (best practice) - fit on raw X_train
     dt_model = DecisionTreeClassifier(random_state=42)
-    dt_model.fit(X_train_scaled, y_train)
+    dt_model.fit(X_train, y_train)
 
     rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
-    rf_model.fit(X_train_scaled, y_train)
+    rf_model.fit(X_train, y_train)
 
     return {
         "encoded": encoded,
@@ -93,14 +100,14 @@ def prepare_and_train(df: pd.DataFrame):
     }
 
 
-#LOAD
 
+#LOAD
 raw_df = load_data()
 
 
 #CLEANING
-df = clean_data(raw_df)
 
+df = clean_data(raw_df)
 st.subheader("Dataset")
 st.dataframe(df.head())
 st.write("Shape :", df.shape)
@@ -111,6 +118,7 @@ st.write("Duplicate Values :", raw_df.duplicated().sum())
 
 #EDA
 st.header("Exploratory Data Analysis")
+
 fig, ax = plt.subplots(figsize=(6, 4))
 sns.countplot(x="target", data=df, ax=ax)
 ax.set_title("Target Distribution")
@@ -141,10 +149,19 @@ sns.histplot(df["chol"], bins=20, kde=True, ax=ax)
 ax.set_title("Cholesterol Distribution")
 st.pyplot(fig)
 
+fig, ax = plt.subplots(figsize=(6, 4))
+sns.histplot(data=df, x="thalach", hue="target", kde=True, ax=ax)
+ax.set_title("Thalach Distribution by Target")
+st.pyplot(fig)
+
+fig, ax = plt.subplots(figsize=(6, 4))
+sns.boxplot(x="target", y="oldpeak", data=df, ax=ax)
+ax.set_title("Oldpeak vs Heart Disease")
+st.pyplot(fig)
+
 
 # STEP 4-7: FEATURE ENGINEERING -> SPLIT -> SCALING -> TRAIN
 state = prepare_and_train(df)
-
 X = state["X"]
 y = state["y"]
 X_test_scaled = state["X_test_scaled"]
@@ -197,11 +214,15 @@ ax.set_title("ROC Curve")
 ax.legend()
 st.pyplot(fig)
 
-dt_pred = dt_model.predict(X_test_scaled)
+st.write("### Classification Report (Logistic Regression)")
+st.text(classification_report(y_test, y_pred))
+
+# Tree-based models predict on the unscaled test set (they don't need scaling)
+dt_pred = dt_model.predict(state["X_test"])
 dt_accuracy = accuracy_score(y_test, dt_pred)
 st.write("Decision Tree Accuracy :", dt_accuracy)
 
-rf_pred = rf_model.predict(X_test_scaled)
+rf_pred = rf_model.predict(state["X_test"])
 rf_accuracy = accuracy_score(y_test, rf_pred)
 st.write("Random Forest Accuracy :", rf_accuracy)
 
@@ -215,7 +236,6 @@ fig, ax = plt.subplots(figsize=(8, 5))
 sns.barplot(x="Model", y="Accuracy", data=comparison, ax=ax)
 ax.set_title("Model Comparison")
 st.pyplot(fig)
-
 feature_importance = pd.DataFrame({
     "Feature": X.columns,
     "Importance": rf_model.feature_importances_
@@ -227,8 +247,17 @@ sns.barplot(x="Importance", y="Feature", data=feature_importance.head(10), ax=ax
 ax.set_title("Top Health Indicators")
 st.pyplot(fig)
 
+coef = pd.DataFrame({
+    "Feature": X.columns,
+    "Coefficient": model.coef_[0]
+})
+coef["Absolute"] = coef["Coefficient"].abs()
+coef = coef.sort_values(by="Absolute", ascending=False)
 
-# STEP 9: PREDICTION
+st.subheader("Logistic Regression Feature Importance")
+st.dataframe(coef)
+
+#PREDICTION
 st.header("Heart Disease Prediction")
 age = st.number_input("Age", 1, 100, 30)
 sex = st.selectbox("Sex", [0, 1], format_func=lambda x: "Female" if x == 0 else "Male")
