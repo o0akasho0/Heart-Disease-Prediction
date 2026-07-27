@@ -31,43 +31,45 @@ st.write("Logistic Regression | Decision Tree | Random Forest")
 CAT_COLS = ["cp", "restecg", "slope", "thal"]
 
 
-# ---------------------------------------------------------------
-# Cache data + model training so it does NOT retrain on every
-# widget interaction / button click (this was silently happening
-# in the original script since the whole file re-ran each time).
-# ---------------------------------------------------------------
+
+# LOAD
 @st.cache_data
 def load_data():
     raw_df = pd.read_csv("heart.csv")
     return raw_df
 
 
-@st.cache_resource
-def train_models(raw_df: pd.DataFrame):
-    df = raw_df.drop_duplicates().copy()
 
-    # Make sure categorical columns are plain integers BEFORE one-hot
-    # encoding. If any of these ever contain NaN, pandas silently
-    # upcasts the column to float, and get_dummies would then create
-    # columns like "cp_1.0" instead of "cp_1" -- this was the actual
-    # bug causing every prediction to come out the same, because the
-    # manually-built one-hot columns in the old code never matched.
+#CLEANING (separated out, so it runs BEFORE EDA)
+
+@st.cache_data
+def clean_data(raw_df: pd.DataFrame):
+    df = raw_df.drop_duplicates().copy()
     for c in CAT_COLS:
         df[c] = df[c].astype(int)
+    return df
 
+
+# STEP 4-7: FEATURE ENGINEERING -> SPLIT -> SCALING -> TRAIN
+@st.cache_resource
+def prepare_and_train(df: pd.DataFrame):
+    # Feature Engineering (One-Hot Encoding)
     encoded = pd.get_dummies(df, columns=CAT_COLS, drop_first=True)
 
     X = encoded.drop("target", axis=1)
     y = encoded["target"]
 
+    # Split
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
+    # Scaling
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
 
+    # Train
     log_model = LogisticRegression(max_iter=1000)
     log_model.fit(X_train_scaled, y_train)
 
@@ -78,7 +80,6 @@ def train_models(raw_df: pd.DataFrame):
     rf_model.fit(X_train_scaled, y_train)
 
     return {
-        "df": df,
         "encoded": encoded,
         "X": X,
         "y": y,
@@ -92,18 +93,13 @@ def train_models(raw_df: pd.DataFrame):
     }
 
 
-raw_df = load_data()
-state = train_models(raw_df)
+#LOAD
 
-df = state["df"]
-X = state["X"]
-y = state["y"]
-X_test_scaled = state["X_test_scaled"]
-y_test = state["y_test"]
-scaler = state["scaler"]
-model = state["log_model"]           # Logistic Regression = main model used for prediction
-dt_model = state["dt_model"]
-rf_model = state["rf_model"]
+raw_df = load_data()
+
+
+#CLEANING
+df = clean_data(raw_df)
 
 st.subheader("Dataset")
 st.dataframe(df.head())
@@ -113,7 +109,7 @@ st.write(df.isnull().sum())
 st.write("Duplicate Values :", raw_df.duplicated().sum())
 
 
-# Exploratory Data Analysis
+#EDA
 st.header("Exploratory Data Analysis")
 fig, ax = plt.subplots(figsize=(6, 4))
 sns.countplot(x="target", data=df, ax=ax)
@@ -145,12 +141,26 @@ sns.histplot(df["chol"], bins=20, kde=True, ax=ax)
 ax.set_title("Cholesterol Distribution")
 st.pyplot(fig)
 
+
+# STEP 4-7: FEATURE ENGINEERING -> SPLIT -> SCALING -> TRAIN
+state = prepare_and_train(df)
+
+X = state["X"]
+y = state["y"]
+X_test_scaled = state["X_test_scaled"]
+y_test = state["y_test"]
+scaler = state["scaler"]
+model = state["log_model"]           # Logistic Regression = main model used for prediction
+dt_model = state["dt_model"]
+rf_model = state["rf_model"]
+
 st.subheader("Dataset After One Hot Encoding")
 st.dataframe(state["encoded"].head())
 st.write("Feature columns used by the model:", X.columns.tolist())
 
 
-# Model Evaluation
+#EVALUATION
+
 y_pred = model.predict(X_test_scaled)
 y_prob = model.predict_proba(X_test_scaled)[:, 1]
 
@@ -218,11 +228,8 @@ ax.set_title("Top Health Indicators")
 st.pyplot(fig)
 
 
-# ---------------------------------------------------------------
-# Prediction Section
-# ---------------------------------------------------------------
+# STEP 9: PREDICTION
 st.header("Heart Disease Prediction")
-
 age = st.number_input("Age", 1, 100, 30)
 sex = st.selectbox("Sex", [0, 1], format_func=lambda x: "Female" if x == 0 else "Male")
 cp = st.selectbox("Chest Pain Type", [0, 1, 2, 3])
@@ -238,12 +245,6 @@ ca = st.selectbox("Major Vessels", [0, 1, 2, 3, 4])
 thal = st.selectbox("Thal", [0, 1, 2, 3])
 
 if st.button("Predict"):
-    # Manual one-hot encoding (matches how training data was one-hot
-    # encoded with pd.get_dummies(..., drop_first=True) on cp/restecg/
-    # slope/thal). Since CAT_COLS were forced to int during training
-    # (see train_models), the dummy column names are guaranteed to be
-    # "cp_1", "cp_2", ... and NOT "cp_1.0" -- so these manual 0/1
-    # flags will always match the columns the model was trained on.
     user = {
         "age": age,
         "sex": sex,
@@ -295,14 +296,11 @@ if st.button("Predict"):
         user["thal_3"] = 1
 
     user_encoded = pd.DataFrame([user]).reindex(columns=X.columns, fill_value=0)
-
     with st.expander("Debug: encoded input sent to the model"):
         st.dataframe(user_encoded)
-
     user_scaled = scaler.transform(user_encoded)
     prediction = model.predict(user_scaled)
     probability = model.predict_proba(user_scaled)[0]
-
     st.write("Prediction Value:", prediction[0])
     st.write(f"Probability -> No Disease: {probability[0]:.3f} | Disease: {probability[1]:.3f}")
 
@@ -310,4 +308,3 @@ if st.button("Predict"):
         st.error("Heart Disease Detected")
     else:
         st.success("No Heart Disease")
-
