@@ -34,48 +34,6 @@ st.write("Missing Values")
 st.write(df.isnull().sum())
 st.write("Duplicate Values :", raw_df.duplicated().sum())
 
-# ---------------- EDA ----------------
-st.header("Exploratory Data Analysis")
-
-fig, ax = plt.subplots(figsize=(6, 4))
-sns.countplot(x="target", data=df, ax=ax)
-ax.set_title("Target Distribution")
-st.pyplot(fig)
-
-fig, ax = plt.subplots(figsize=(6, 4))
-sns.countplot(x="sex", hue="target", data=df, ax=ax)
-ax.set_title("Heart Disease by Gender")
-st.pyplot(fig)
-
-fig, ax = plt.subplots(figsize=(12, 8))
-sns.heatmap(df.corr(numeric_only=True), annot=True, cmap="coolwarm", ax=ax)
-ax.set_title("Correlation Heatmap")
-st.pyplot(fig)
-
-fig, ax = plt.subplots(figsize=(6, 4))
-sns.countplot(x="cp", hue="target", data=df, ax=ax)
-ax.set_title("Chest Pain Type vs Heart Disease")
-st.pyplot(fig)
-
-fig, ax = plt.subplots(figsize=(6, 4))
-sns.scatterplot(x="age", y="thalach", hue="target", data=df, ax=ax)
-ax.set_title("Age vs Maximum Heart Rate")
-st.pyplot(fig)
-
-fig, ax = plt.subplots(figsize=(6, 4))
-sns.histplot(df["chol"], bins=20, kde=True, ax=ax)
-ax.set_title("Cholesterol Distribution")
-st.pyplot(fig)
-
-fig, ax = plt.subplots(figsize=(6, 4))
-sns.histplot(data=df, x="thalach", hue="target", kde=True, ax=ax)
-ax.set_title("Thalach Distribution by Target")
-st.pyplot(fig)
-
-fig, ax = plt.subplots(figsize=(6, 4))
-sns.boxplot(x="target", y="oldpeak", data=df, ax=ax)
-ax.set_title("Oldpeak vs Heart Disease")
-st.pyplot(fig)
 
 # ---------------- FEATURE ENGINEERING ----------------
 encoded = pd.get_dummies(df, columns=CAT_COLS, drop_first=True)
